@@ -1,58 +1,56 @@
 // Bellman's Ford Algo
-#include<bits/stdc++.h>
+#include <bits/stdc++.h>
 using namespace std;
-
-#define mp make_pair
-#define pb push_back
-#define f first
-#define s second
 #define ll long long int
-using vi = vector<ll>;
-using vb = vector<bool>;
-using sti = stack<ll>;
-using pii = pair<ll, ll>;
-using vvi = vector<vi>;
-using vvb = vector<vb>;
-using vpii = vector<pii>;
-
-const ll MAXD = 1e17;
-ll n, m;
+const ll INF = 1e17;
+const ll NINF = INF*(-1);
+ 
 struct edge{
-    int x, y, w;
+	ll u, v, w;
 };
+ 
+ll n, m;	
 vector<edge> edges;
-
-int main(){
-    ios_base::sync_with_stdio(false);
+vector<ll> dist;
+ 
+int main()
+{
+	ios_base::sync_with_stdio(false);
 	cin.tie(NULL);
-    cin>>n>>m;
-	vi dist(n+1, MAXD);
-    edges.resize(n);
-    dist[1] = 0;
-    for(int i=0;i<m;i++){
-        ll x, y, w;
-        cin>>x>>y>>w;
-        edges[i].x = x;
-        edges[i].y = y;
-        edges[i].w = -w;
-    }
-    int x=-1;
-    for(int i=0;i<n;i++){
-        x = -1;
+	cin>>n>> m;
+	dist.resize(n+1);
+	edges.resize(m);
+	for(ll i = 0; i < m; ++i){
+		struct edge inp;
+		cin>>inp.u>>inp.v>>inp.w;
+		inp.w*=-1; 
+		edges[i]=inp;
+	}
+	for(ll i = 2; i <= n; ++i)
+		dist[i] = INF;
+	
+    for(ll i = 1; i < n; ++i){
         for(auto e: edges){
-            int u = e.x;
-            int v = e.y;
-            int d = e.w;
-            if(dist[u]==MAXD) continue;
-            if(dist[v]>dist[u]+d){
-                dist[v] = max<ll>(dist[u]+d, -1 * MAXD);
-                x=1;
-            }
-        }
-    }
-    if(x==1) cout<<"-1"<<endl;
-    else cout<< -1 * dist[n]<<endl;
+            ll u = e.u;
+            ll v = e.v;
+            ll d = e.w;
+            if(dist[u] == INF) continue;
+            dist[v] = min(dist[v], d+dist[u]);
+            dist[v] = max(dist[v], NINF);
+        }      
+    } // n relaxations
+    for(ll i = 1; i < n; ++i){
+		for(auto e: edges){
+			ll u = e.u;
+			ll v = e.v;
+			ll d = e.w;
+			if(dist[u] == INF) continue;
+			dist[v] = max(dist[v], NINF);
+			if(dist[u]+d < dist[v])
+				dist[v] = NINF;
+		}
+	}
+	if(dist[n] == NINF) cout<<-1<< endl;
+	else cout<<dist[n]*(-1)<< endl;
     return 0;
 }
-
-

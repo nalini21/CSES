@@ -10,13 +10,12 @@ using vbb = vector<vector<bool>>;
 #define pb push_back
 
 bool bipartiteCheck(vii &adj_list, int src, vi &colors){
-    int n = adj_list[src].size();
-    for(int i=0;i<n;i++){
-        if(colors[adj_list[src][i]] == -1){
-            colors[adj_list[src][i]] = !colors[src];
-            if (!bipartiteCheck(adj_list, adj_list[src][i], colors)) return false;
+    for(auto u : adj_list[src]){
+        if(colors[u] == -1){
+            colors[u] = !colors[src];
+            if (!bipartiteCheck(adj_list, u, colors)) return false;
         }
-        else if(colors[adj_list[src][i]] == colors[src])
+        else if(colors[u] == colors[src])
             return false;
     }
     return true;

@@ -12,18 +12,13 @@ vi visited;
 vi top_sort;
 
 void dfs(int node){
-    // cout<<"running for node: "<<node<<endl;
     for(int u: adj_list[node]){
         if(!visited[u]){
             visited[u]=true;
-            // cout<<"dfs("<<u<<") is called"<<endl;
             dfs(u);
         }
     }
     top_sort.pb(node);
-    // cout<<"top_sort vector is like this:"<<endl;
-    // for(int i:top_sort) cout<<i<<" ";
-    // cout<<endl;
 }
 
 int main()

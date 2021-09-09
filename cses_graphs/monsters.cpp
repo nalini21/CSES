@@ -1,143 +1,71 @@
 #include<bits/stdc++.h>
 using namespace std;
-using vi = vector<int>;
-using vii = vector<vector<int>>;
-using vb = vector<bool>;
-using vbb = vector<vector<bool>>;
-using sti = stack<int>;
-using vpii = vector<pair<int,int>>;
-#define mp make_pair
-#define pb push_back
 #define pii pair<int, int>
-#define f first
-#define s second
-#define nm 1005
-
- 
+int dx[] = {-1, 0, 1, 0};
+int dy[] = {0, 1, 0, -1};
+int paths[1001][1001];
+pii from[1001][1001];
+int MAXD = INT_MAX;
+pii A;
 int n, m;
-vpii monster;
-vii g;
-map<pii, pii> par_mp;
-pii si, se; 
-vpii moves = {{-1,0},{1,0},{0,1},{0,-1}}; 
+queue<pii> q;
+string ans;
+bool possible = false;
 
-bool isValid(int x, int y, int timer){
-  if(x<0 or y<0 or x>=n or y>=m) return false;
-  if(g[x][y] <= timer) return false;
-  return true;
+void retrace(pii node){  
+	pii origin = from[node.first][node.second];
+	if(origin ==  pii(0,0)) return;
+	if(origin.first == node.first+1) ans.push_back('U');
+	if(origin.first == node.first-1) ans.push_back('D');
+	if(origin.second == node.second+1) ans.push_back('L');
+	if(origin.second==node.second-1) ans.push_back('R');
+	retrace(origin);
 }
- 
-bool isExcape(int x, int y, int timer){
-  if(!isValid(x,y,timer)) return false;
-  if(x == 0 or y == 0 or x == n-1 or y == m-1) return true;
-  return false;
+void check(pii origin, pii dest){ // check if the considered destination may be traveled to
+	int pl = paths[origin.first][origin.second];
+	if(pl+1<paths[dest.first][dest.second]){
+		paths[dest.first][dest.second]  = pl+1;
+		q.push(dest);
+		from[dest.first][dest.second] = origin;
+	}
 }
- 
-bool bfs_escape(){
-  queue<pair<pii,int>> q;
-  q.push(make_pair(si,0));
-  par_mp[si] = {-1,-1};
-  while(!q.empty())
-  {
-    int cx = q.front().first.first;
-    int cy = q.front().first.second;
-    int timer = q.front().second; 
-    timer++; 
-	q.pop();
-    for(auto mv: moves){
-      int tx = cx+mv.first;
-      int ty = cy+mv.second;
-      if(isExcape(tx,ty,timer)){
-       par_mp[{tx,ty}] = {cx,cy};
-       se = {tx,ty}; return true; 
-      }
-      if(isValid(tx,ty,timer)){
-        par_mp[{tx,ty}] = {cx,cy};
-        g[tx][ty] = timer;
-        q.push({{tx,ty},timer});
-      }
-    }
-  }
-  return false;
+bool mora = false; // false if bfs for monsters, true if bfs for A
+void bfs(){
+	while(!q.empty()){
+		pii loc = q.front(), next; q.pop();
+		next = loc; next.first++; check(loc, next); 
+		next = loc; next.first--; check(loc, next);
+		next = loc; next.second++; check(loc, next);
+		next = loc; next.second--; check(loc, next);
+		if(mora && (loc.first == 1 || loc.second == 1 || loc.first == n || loc.second == m)){
+			cout << "YES" << endl;
+			cout << paths[loc.first][loc.second] << endl;
+			retrace(loc);
+			possible = true;
+			return;
+		}
+	}
 }
-
-void preprocess_lava_flow(){
-  queue<pair<pii,int>> q;
-  for(auto m: monster)
-    q.push(make_pair(m,0));
-  while(!q.empty()){
-    int cx = q.front().first.first;
-    int cy = q.front().first.second;
-    int timer = q.front().second; 
-    timer++; 
-	q.pop();
-    for(auto mv: moves){
-      int tx = cx+mv.first;
-      int ty = cy+mv.second;
-      if(isValid(tx,ty,timer)){
-        g[tx][ty] = timer;
-        q.push({{tx,ty},timer});
-      }
-    }
-  } 
-}
-
-int32_t main(){
-  ios_base::sync_with_stdio(false);
-  cin.tie(NULL);
-  cin >> n >> m;
-  g.resize(n);
-  for(int i = 0; i < n; ++i)
-    g[i].resize(m);
-  for(int i = 0; i < n; ++i)
-    for (int j = 0; j < m; ++j)
-      g[i][j] = INT_MAX;
-  for(int i = 0; i < n; ++i){
-    for (int j = 0; j < m; ++j){
-      char c; cin >> c;
-      if(c == '#') g[i][j] = 0;
-      else if(c == 'M'){
-        g[i][j] = 0;
-        monster.push_back({i,j});
-      }
-      else if(c == 'A'){
-        g[i][j] = 0;
-        si = {i,j};
-      }
-      else g[i][j] = INT_MAX;
-    }
-  }
-  if(si.first == 0 or si.second == 0 or si.first == n-1 or si.second == m-1) {
-    cout << "YES" << endl;
-    cout << 0;
-    return 0;
-  }
-  preprocess_lava_flow();
-  if(!bfs_escape()){
-    cout << "NO";
-    return 0;
-  }
-  cout << "YES" << endl;
-  pii tmp = se;
-  pii tmp1 = par_mp[se];
-  pii ed = {-1,-1}; 
-  vector<char> ans;
-  while(tmp1 != ed){  
-    if((tmp.second - tmp1.second) == 1 and (tmp.first - tmp1.first) == 0)
-      ans.push_back('R');
-    if((tmp.second - tmp1.second) == -1 and (tmp.first - tmp1.first) == 0)
-      ans.push_back('L');
-    if((tmp.second - tmp1.second) == 0 and (tmp.first - tmp1.first) == 1)
-      ans.push_back('D');
-    if((tmp.second - tmp1.second) == 0 and (tmp.first - tmp1.first) == -1)
-      ans.push_back('U');
-    tmp = par_mp[tmp];
-    tmp1 = par_mp[tmp];
-  }
-  reverse(ans.begin(), ans.end());
-  cout << ans.size() << endl;
-  for(auto c: ans)
-  {
-    cout << c;
-  }
+int main(){
+	cin>>n>>m;
+	for(int i=1;i<=n;i++){
+		string s;
+		cin >> s;
+		for(int j=1;j<=m; j++){
+			paths[i][j] = MAXD;
+			if(s[j-1] == '#') paths[i][j] = 0;
+			if(s[j-1] == 'M') {q.push(pii(i,j)); paths[i][j]  = 0;}
+			if(s[j-1] == 'A') {A.first = i; A.second = j;}
+		}
+	}
+	bfs(); 
+	mora = true; 
+	from[A.first][A.second] = pii(0,0); 
+	paths[A.first][A.second] = 0; q.push(A); 
+	bfs(); 
+	if(possible){
+		reverse(ans.begin(), ans.end());
+		cout << ans << endl;
+	}
+	else cout << "NO" << endl;
 }
